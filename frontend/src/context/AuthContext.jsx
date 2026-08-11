@@ -3,8 +3,8 @@ import axios from 'axios';
 
 const AuthContext = createContext(null);
 
-// Configure axios base defaults - use VITE_API_BASE_URL env var, fallback to localhost for development
-axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+// Configure axios base defaults - use VITE_API_BASE_URL env var, fallback to https://ai-resume-analyzer-6e7m.onrender.com for development
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || 'https://ai-resume-analyzer-6e7m.onrender.com';
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

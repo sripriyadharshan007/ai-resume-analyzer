@@ -6,7 +6,7 @@ spring:
     name: ai-resume-analyzer-backend
   data:
     mongodb:
-      uri: ${MONGODB_URI:mongodb://localhost:27017/resume_analyzer}
+      uri: ${MONGODB_URI}
   servlet:
     multipart:
       max-file-size: 10MB
