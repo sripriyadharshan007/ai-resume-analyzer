@@ -43,6 +43,17 @@ public class AuthController {
 
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
+        // Auto-register if user doesn't exist
+        if (!userRepository.existsByEmail(loginRequest.getEmail())) {
+            User user = User.builder()
+                    .name(loginRequest.getEmail().split("@")[0])
+                    .email(loginRequest.getEmail())
+                    .password(passwordEncoder.encode(loginRequest.getPassword()))
+                    .roles(Collections.singleton("ROLE_USER"))
+                    .build();
+            userRepository.save(user);
+        }
+
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getEmail(),

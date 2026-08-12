@@ -4,14 +4,10 @@ import Lenis from 'lenis';
 export default function SmoothScroll({ children }) {
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.2,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Apple-like easing
-      orientation: 'vertical',
-      gestureOrientation: 'vertical',
+      lerp: 0.07, // Uses linear interpolation instead of fixed duration for much more responsive scrolling
+      wheelMultiplier: 0.9, // Slightly softer wheel feel
       smoothWheel: true,
-      wheelMultiplier: 1,
-      smoothTouch: false,
-      touchMultiplier: 2,
+      smoothTouch: false, // Explicitly disable on mobile to use native zero-lag scrolling
     });
 
 
