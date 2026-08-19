@@ -1,20 +1,29 @@
 import React, { useEffect, useState } from 'react';
-import { motion, useSpring } from 'framer-motion';
+import { motion, useSpring, useMotionValue } from 'framer-motion';
 
 export default function CustomCursor() {
-  const [mousePos, setMousePos] = useState({ x: -100, y: -100 });
   const [isHovering, setIsHovering] = useState(false);
 
-  // Smooth trailing spring for the outer circle
-  const springConfig = { damping: 25, stiffness: 400, mass: 0.5 };
-  const cursorX = useSpring(mousePos.x, springConfig);
-  const cursorY = useSpring(mousePos.y, springConfig);
+  // Use motion values directly to avoid React state re-render lag
+  const dotX = useMotionValue(-100);
+  const dotY = useMotionValue(-100);
+  
+  const ringX = useMotionValue(-100);
+  const ringY = useMotionValue(-100);
+
+  // Smooth trailing spring for the outer ring
+  const springConfig = { damping: 25, stiffness: 500, mass: 0.15 };
+  const cursorX = useSpring(ringX, springConfig);
+  const cursorY = useSpring(ringY, springConfig);
 
   useEffect(() => {
     const handleMouseMove = (e) => {
-      setMousePos({ x: e.clientX, y: e.clientY });
-      cursorX.set(e.clientX - 16); // Center outer circle (32x32)
-      cursorY.set(e.clientY - 16);
+      // Inner dot: 8x8 (w-2 h-2) -> 4px offset to center
+      dotX.set(e.clientX - 4); 
+      dotY.set(e.clientY - 4);
+      // Outer ring: 40x40 (w-10 h-10) -> 20px offset to center
+      ringX.set(e.clientX - 20); 
+      ringY.set(e.clientY - 20);
     };
 
     const handleMouseOver = (e) => {
@@ -22,7 +31,9 @@ export default function CustomCursor() {
       if (
         e.target.closest('a') ||
         e.target.closest('button') ||
-        e.target.closest('.magnetic-target')
+        e.target.closest('.magnetic-target') ||
+        e.target.closest('[role="button"]') ||
+        window.getComputedStyle(e.target).cursor === 'pointer'
       ) {
         setIsHovering(true);
       } else {
@@ -36,33 +47,38 @@ export default function CustomCursor() {
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseover', handleMouseOver);
     };
-  }, [cursorX, cursorY]);
+  }, [dotX, dotY, ringX, ringY]);
 
   // Hide cursor on touch devices
   if (typeof window !== 'undefined' && 'ontouchstart' in window) return null;
 
   return (
     <>
-      {/* Outer trailing ring */}
+      {/* Outer premium glass ring */}
       <motion.div
-        className="fixed top-0 left-0 w-8 h-8 rounded-full border border-white/30 pointer-events-none z-[9999] mix-blend-difference hidden md:block"
+        className="fixed top-0 left-0 w-10 h-10 rounded-full border border-brand-400/30 bg-brand-900/10 backdrop-blur-[2px] pointer-events-none z-[9998] hidden md:flex items-center justify-center shadow-[0_0_15px_rgba(59,130,246,0.15)]"
         style={{
           x: cursorX,
           y: cursorY,
         }}
         animate={{
-          scale: isHovering ? 2 : 1,
-          opacity: isHovering ? 0.2 : 1,
+          scale: isHovering ? 1.4 : 1,
+          backgroundColor: isHovering ? "rgba(59, 130, 246, 0.15)" : "rgba(30, 58, 138, 0.1)",
+          borderColor: isHovering ? "rgba(59, 130, 246, 0.6)" : "rgba(96, 165, 250, 0.3)",
         }}
         transition={{ duration: 0.2 }}
       />
-      {/* Inner precise dot */}
+      
+      {/* Inner precise glowing dot */}
       <motion.div
-        className="fixed top-0 left-0 w-2 h-2 bg-white rounded-full pointer-events-none z-[9999] mix-blend-difference hidden md:block"
+        className="fixed top-0 left-0 w-2 h-2 bg-brand-400 rounded-full pointer-events-none z-[9999] hidden md:block shadow-[0_0_8px_rgba(96,165,250,0.9)]"
+        style={{
+          x: dotX,
+          y: dotY,
+        }}
         animate={{
-          x: mousePos.x - 4,
-          y: mousePos.y - 4,
           scale: isHovering ? 0 : 1,
+          opacity: isHovering ? 0 : 1,
         }}
         transition={{ type: 'spring', stiffness: 1000, damping: 28, mass: 0.1 }}
       />

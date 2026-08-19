@@ -4,8 +4,8 @@ import Lenis from 'lenis';
 export default function SmoothScroll({ children }) {
   useEffect(() => {
     const lenis = new Lenis({
-      lerp: 0.07, // Uses linear interpolation instead of fixed duration for much more responsive scrolling
-      wheelMultiplier: 0.9, // Slightly softer wheel feel
+      lerp: 0.1, // Increased lerp for more responsive scrolling
+      wheelMultiplier: 1, // Normal wheel feel
       smoothWheel: true,
       smoothTouch: false, // Explicitly disable on mobile to use native zero-lag scrolling
     });

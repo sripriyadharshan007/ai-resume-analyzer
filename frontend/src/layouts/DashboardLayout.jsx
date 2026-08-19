@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  LayoutDashboard, Upload, LogOut, Sparkles, User, Menu, X, FileText, Github, FileSpreadsheet, Briefcase, ChevronRight
+  LayoutDashboard, Upload, LogOut, Sparkles, User, Menu, X, FileText, Github, FileSpreadsheet, Briefcase, ChevronRight, Database
 } from 'lucide-react';
 import Logo from '../components/ui/Logo';
 import { cn } from '../lib/utils';
@@ -27,6 +27,7 @@ export default function DashboardLayout({ children }) {
     { name: 'GitHub Analyzer', path: '/github', icon: Github },
     { name: 'Cover Letter', path: '/cover-letter', icon: FileSpreadsheet },
     { name: 'Job Matcher', path: '/job-match', icon: Briefcase },
+    { name: 'AI Training', path: '/training', icon: Database },
   ];
 
   return (

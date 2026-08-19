@@ -10,11 +10,15 @@ import com.resumeanalyzer.dto.CourseRecommendationResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+
+import com.resumeanalyzer.model.TrainingResume;
+import com.resumeanalyzer.repository.TrainingResumeRepository;
 
 import java.util.*;
 
@@ -28,6 +32,9 @@ public class AiService {
 
     @Value("${app.gemini.api-url}")
     private String apiUrl;
+
+    @Autowired
+    private TrainingResumeRepository trainingResumeRepository;
 
     private final RestTemplate restTemplate;
     private final ObjectMapper objectMapper;
@@ -93,37 +100,53 @@ public class AiService {
     }
 
     private String buildResumePrompt(String resumeText, String jobDescription) {
-        return "You are an expert Applicant Tracking System (ATS) reviewer and technical recruiter. " +
-                "Evaluate the following resume text against the target job description.\n\n" +
-                "JOB DESCRIPTION:\n" + jobDescription + "\n\n" +
-                "RESUME TEXT:\n" + resumeText + "\n\n" +
-                "Calculate the ATS Score strictly out of 100 using this grading rubric breakdown:\n" +
-                "1. Keyword Match (0-30 points): The proportion of required programming languages, libraries, frameworks, and tools present in the resume.\n" +
-                "2. Experience Alignment (0-30 points): The relevance of the candidate's responsibilities, achievements, and projects to the job duties.\n" +
-                "3. Seniority & Scope Match (0-20 points): The alignment of years of experience, leadership scope, and architectural complexity.\n" +
-                "4. Education & Certifications (0-20 points): Matching the academic degrees, professional credentials, and location constraints.\n" +
-                "Sum these four sections to determine the final overall integer ATS Score.\n\n" +
-                "Provide:\n" +
-                "1. The calculated overall ATS Score (integer, 0-100).\n" +
-                "2. A list of missing skills (tools, platforms, programming languages, or concepts in the job description that are missing or weak in the resume).\n" +
-                "3. Improvement suggestions: Specific suggestions grouped by resume section. For each suggestion, provide: " +
-                "the section name, the exact current text to replace (or empty if it is a new addition), " +
-                "the suggested revision (must be specific, quantitative, and action-verb oriented), " +
-                "the impact level ('High', 'Medium', or 'Low'), and the reason explaining why this revision raises the ATS score.\n\n" +
-                "You MUST return strictly a JSON object matching this schema. Do not include markdown wraps or backticks outside of the raw JSON content:\n" +
-                "{\n" +
-                "  \"atsScore\": 85,\n" +
-                "  \"missingSkills\": [\"skill1\", \"skill2\"],\n" +
-                "  \"improvementSuggestions\": [\n" +
-                "    {\n" +
-                "      \"section\": \"Experience\",\n" +
-                "      \"currentText\": \"Worked on database queries\",\n" +
-                "      \"suggestedText\": \"Optimized 50+ complex PostgreSQL queries, reducing latency by 40% using indexing and partitioning\",\n" +
-                "      \"impact\": \"High\",\n" +
-                "      \"reason\": \"Adds quantitative impact and demonstrates deep SQL expertise which is highly requested\"\n" +
-                "    }\n" +
-                "  ]\n" +
-                "}";
+        StringBuilder promptBuilder = new StringBuilder();
+        promptBuilder.append("You are an expert Applicant Tracking System (ATS) reviewer and technical recruiter. ");
+        promptBuilder.append("Evaluate the following resume text against the target job description.\n\n");
+
+        List<TrainingResume> trainingResumes = trainingResumeRepository.findAll();
+        if (!trainingResumes.isEmpty()) {
+            promptBuilder.append("--- EXAMPLES OF HIGH QUALITY / TARGET RESUMES (FOR CONTEXT) ---\n");
+            for (int i = 0; i < trainingResumes.size(); i++) {
+                promptBuilder.append("Example ").append(i + 1).append(":\n");
+                promptBuilder.append(trainingResumes.get(i).getExtractedText()).append("\n\n");
+            }
+            promptBuilder.append("--- END OF EXAMPLES ---\n\n");
+            promptBuilder.append("Using the above examples as a standard for quality, formatting, and expectations, evaluate the following candidate.\n\n");
+        }
+
+        promptBuilder.append("JOB DESCRIPTION:\n").append(jobDescription).append("\n\n");
+        promptBuilder.append("RESUME TEXT:\n").append(resumeText).append("\n\n");
+        
+        promptBuilder.append("Calculate the ATS Score strictly out of 100 using this grading rubric breakdown:\n");
+        promptBuilder.append("1. Keyword Match (0-30 points): The proportion of required programming languages, libraries, frameworks, and tools present in the resume.\n");
+        promptBuilder.append("2. Experience Alignment (0-30 points): The relevance of the candidate's responsibilities, achievements, and projects to the job duties.\n");
+        promptBuilder.append("3. Seniority & Scope Match (0-20 points): The alignment of years of experience, leadership scope, and architectural complexity.\n");
+        promptBuilder.append("4. Education & Certifications (0-20 points): Matching the academic degrees, professional credentials, and location constraints.\n");
+        promptBuilder.append("Sum these four sections to determine the final overall integer ATS Score.\n\n");
+        promptBuilder.append("Provide:\n");
+        promptBuilder.append("1. The calculated overall ATS Score (integer, 0-100).\n");
+        promptBuilder.append("2. A list of missing skills (tools, platforms, programming languages, or concepts in the job description that are missing or weak in the resume).\n");
+        promptBuilder.append("3. Improvement suggestions: Specific suggestions grouped by resume section. For each suggestion, provide: ");
+        promptBuilder.append("the section name, the exact current text to replace (or empty if it is a new addition), ");
+        promptBuilder.append("the suggested revision (must be specific, quantitative, and action-verb oriented), ");
+        promptBuilder.append("the impact level ('High', 'Medium', or 'Low'), and the reason explaining why this revision raises the ATS score.\n\n");
+        promptBuilder.append("You MUST return strictly a JSON object matching this schema. Do not include markdown wraps or backticks outside of the raw JSON content:\n");
+        promptBuilder.append("{\n");
+        promptBuilder.append("  \"atsScore\": 85,\n");
+        promptBuilder.append("  \"missingSkills\": [\"skill1\", \"skill2\"],\n");
+        promptBuilder.append("  \"improvementSuggestions\": [\n");
+        promptBuilder.append("    {\n");
+        promptBuilder.append("      \"section\": \"Experience\",\n");
+        promptBuilder.append("      \"currentText\": \"Worked on database queries\",\n");
+        promptBuilder.append("      \"suggestedText\": \"Optimized 50+ complex PostgreSQL queries, reducing latency by 40% using indexing and partitioning\",\n");
+        promptBuilder.append("      \"impact\": \"High\",\n");
+        promptBuilder.append("      \"reason\": \"Adds quantitative impact and demonstrates deep SQL expertise which is highly requested\"\n");
+        promptBuilder.append("    }\n");
+        promptBuilder.append("  ]\n");
+        promptBuilder.append("}");
+        
+        return promptBuilder.toString();
     }
 
     // ──────────────────────────────────────────────────────────────

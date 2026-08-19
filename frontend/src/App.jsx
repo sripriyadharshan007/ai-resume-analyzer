@@ -4,7 +4,6 @@ import { Sparkles } from 'lucide-react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Logo from './components/ui/Logo';
 import SmoothScroll from './components/ui/SmoothScroll';
-import CustomCursor from './components/ui/CustomCursor';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
@@ -18,6 +17,7 @@ import ResumeBuilder from './pages/builder/ResumeBuilder';
 import GithubAnalyzer from './pages/github/GithubAnalyzer';
 import CoverLetterGenerator from './pages/coverletter/CoverLetterGenerator';
 import JobMatcher from './pages/match/JobMatcher';
+import TrainingData from './pages/training/TrainingData';
 
 function PagePlaceholder({ title }) {
   const { logout } = useAuth();
@@ -52,8 +52,7 @@ export default function App() {
   return (
     <AuthProvider>
       <SmoothScroll>
-        <CustomCursor />
-        <div className="relative min-h-screen bg-[#030509] cursor-none">
+        <div className="relative min-h-screen bg-[#030509]">
           <Router>
             <Routes>
               <Route path="/" element={<LandingPage />} />
@@ -67,6 +66,7 @@ export default function App() {
               <Route path="/github" element={<PrivateRoute><DashboardLayout><GithubAnalyzer /></DashboardLayout></PrivateRoute>} />
               <Route path="/cover-letter" element={<PrivateRoute><DashboardLayout><CoverLetterGenerator /></DashboardLayout></PrivateRoute>} />
               <Route path="/job-match" element={<PrivateRoute><DashboardLayout><JobMatcher /></DashboardLayout></PrivateRoute>} />
+              <Route path="/training" element={<PrivateRoute><DashboardLayout><TrainingData /></DashboardLayout></PrivateRoute>} />
               <Route path="/interview/:id" element={<PrivateRoute><InterviewPrep /></PrivateRoute>} />
             </Routes>
           </Router>
