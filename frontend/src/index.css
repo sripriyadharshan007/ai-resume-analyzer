@@ -29,15 +29,7 @@
     color: transparent;
   }
 
-  /* Optional: hide cursor for the custom cursor effect (but only for md and up) */
-  @media (min-width: 768px) {
-    body {
-      cursor: none;
-    }
-    a, button, input, textarea, select {
-      cursor: none;
-    }
-  }
+
   
   /* Lenis Smooth Scroll */
   html.lenis, html.lenis body { height: auto; }

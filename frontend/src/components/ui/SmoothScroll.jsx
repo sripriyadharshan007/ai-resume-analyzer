@@ -4,10 +4,11 @@ import Lenis from 'lenis';
 export default function SmoothScroll({ children }) {
   useEffect(() => {
     const lenis = new Lenis({
-      lerp: 0.1, // Increased lerp for more responsive scrolling
-      wheelMultiplier: 1, // Normal wheel feel
+      duration: 1.2, // Fixed duration for a predictable scroll length
+      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Exponential ease out for buttery smoothness without the trailing lag
+      wheelMultiplier: 1,
       smoothWheel: true,
-      smoothTouch: false, // Explicitly disable on mobile to use native zero-lag scrolling
+      smoothTouch: false, // Keep native touch scroll
     });
 
 
